@@ -167,45 +167,6 @@ function ssResponder()
     end
 end
 
-function RenewOrSWP()
-    if (not UnitExists("target")) then
-        TargetUnit('player')
-    end
-    if UnitIsFriend("player", "target") then
-        --CastSpellByName("Renew")
-        local Sp = { 1, 10, 15, 20, 25, 30, 35, 40, 45, 50 }
-        if UnitLevel("target") ~= nil then
-            for i = 10, 1, -1 do
-                if (UnitLevel("target") >= Sp[i]) then
-                    CastSpellByName("Renew(Rank " .. i .. ")")
-                    return
-                end
-            end
-        end
-    else
-
-        local baseStack = 0
-
-        for i = 1, 40 do
-            if (string.find(tostring(UnitDebuff("target", i)), "Spell_Shadow_BlackPlague")) then
-                local _, stack = UnitDebuff("target", i)
-                baseStack = stack
-            end
-        end
-
-        for i = 1, 40 do
-            if (string.find(tostring(UnitDebuff("target", i)), "Spell_Shadow_ShadowWordPain")) then
-                if baseStack < 4 then
-                    CastSpellByName("Shadow Word: Pain(Rank 1)")
-                    return true
-                end
-            end
-        end
-        CastSpellByName("Shadow Word: Pain")
-
-    end
-end
-
 function pws()
 
     if (not UnitExists("target")) then
