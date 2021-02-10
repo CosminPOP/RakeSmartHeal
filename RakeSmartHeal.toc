@@ -1,0 +1,6 @@
+## Interface: 11200
+## Title: Rake Smart Heal
+## Author: Rake
+## Version: 0.1
+## Notes: Smart Spell Ranks
+RakeSmartHeal.lua
