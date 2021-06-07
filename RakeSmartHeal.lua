@@ -10,14 +10,275 @@ function eventHandler()
         if (event == 'CHAT_MSG_WHISPER') then
             ssRes(arg1, arg2)
         end
+        --if (event == 'CHAT_MSG_ADDON') then
+        --    if not RSH then
+        --        RSH = 0
+        --    end
+        --    RSH = RSH + 1
+        --end
     end
 end
 
 RakeSmartHeal:SetScript("OnEvent", eventHandler)
 
+function TargetLowest(p1, p2, p3, p4, p5, p6, p7, p8)
+
+    local inRaid = GetNumRaidMembers() > 0
+    local inGroup = not inRaid and GetNumPartyMembers() > 0
+    local isSolo = not inRaid and not inGroup
+
+    local groupsString = ''
+
+    local g = { false, false, false, false, false, false, false, false }
+    if p1 then
+        for i = 1, 8 do
+            if (p1 == i) then
+                g[i] = true
+                groupsString = groupsString .. i .. ' '
+            end
+        end
+    end
+    if p2 then
+        for i = 1, 8 do
+            if (p2 == i) then
+                g[i] = true
+                groupsString = groupsString .. i .. ' '
+            end
+        end
+    end
+    if p3 then
+        for i = 1, 8 do
+            if (p3 == i) then
+                g[i] = true
+                groupsString = groupsString .. i .. ' '
+            end
+        end
+    end
+    if p4 then
+        for i = 1, 8 do
+            if (p4 == i) then
+                g[i] = true
+                groupsString = groupsString .. i .. ' '
+            end
+        end
+    end
+    if p5 then
+        for i = 1, 8 do
+            if (p5 == i) then
+                g[i] = true
+                groupsString = groupsString .. i .. ' '
+            end
+        end
+    end
+    if p6 then
+        for i = 1, 8 do
+            if (p6 == i) then
+                g[i] = true
+                groupsString = groupsString .. i .. ' '
+            end
+        end
+    end
+    if p7 then
+        for i = 1, 8 do
+            if (p7 == i) then
+                g[i] = true
+                groupsString = groupsString .. i .. ' '
+            end
+        end
+    end
+    if p8 then
+        for i = 1, 8 do
+            if (p8 == i) then
+                g[i] = true
+                groupsString = groupsString .. i .. ' '
+            end
+        end
+    end
+
+    local healOricare = true;
+
+    for i = 1, 8 do
+        if (g[i]) then
+            healOricare = false -- nu oricare, doar unele grupuri.
+        else
+        end
+    end
+
+    local i, members = 0, 0;
+
+    if (isSolo) then
+        if (not UnitExists("target")) then
+            TargetUnit("player")
+        end
+    end
+
+    local target = "player"
+    local max_difference = 0
+    local new_difference = 0
+    local lowest_unit = "player"
+
+    if (inGroup) then
+        members = GetNumPartyMembers();
+
+        for i = 1, members do
+            target = "party" .. i
+            new_difference = (UnitHealthMax(target) - UnitHealth(target))
+            if (new_difference > max_difference) then
+                lowest_unit = target
+                max_difference = new_difference
+            end
+        end
+        TargetUnit(lowest_unit);
+    end ;
+
+    if (inRaid) then
+        members = GetNumRaidMembers()
+
+        if healOricare then
+
+            for i = 0, members do
+                target = "raid" .. i
+                if not UnitIsDead("raid" .. i) and UnitIsConnected("raid" .. i) and
+                        UnitIsVisible("raid" .. i) and CheckInteractDistance("raid" .. i, 4) and
+                        UnitLevel("raid" .. i) >= 55 and UnitExists("raid" .. i) then
+                    new_difference = (UnitHealthMax(target) - UnitHealth(target))
+                    if (new_difference > max_difference) then
+                        lowest_unit = target
+                        max_difference = new_difference
+                    end
+                end
+            end
+            TargetUnit(lowest_unit);
+            TheoryCraftCast("Flash Heal")
+
+        else
+
+            lowest_unit = 'null'
+
+            for i = 1, members do
+                target = "raid" .. i
+
+                local name, rank, subgroup = GetRaidRosterInfo(i)
+
+                if (g[1] and subgroup == 1) or
+                        (g[2] and subgroup == 2) or
+                        (g[3] and subgroup == 3) or
+                        (g[4] and subgroup == 4) or
+                        (g[5] and subgroup == 5) or
+                        (g[6] and subgroup == 6) or
+                        (g[7] and subgroup == 7) or
+                        (g[8] and subgroup == 8) then
+
+                    if not UnitIsDead("raid" .. i) and UnitIsConnected("raid" .. i) and
+                            UnitIsVisible("raid" .. i) and CheckInteractDistance("raid" .. i, 4) and
+                            UnitLevel("raid" .. i) >= 0 and UnitExists("raid" .. i) then
+
+                        new_difference = (UnitHealthMax(target) - UnitHealth(target))
+
+                        if (new_difference > max_difference) then
+                            lowest_unit = target
+                            max_difference = new_difference
+                        end
+                    end
+                end
+            end
+
+            if (lowest_unit == 'null') then
+            else
+                TargetUnit(lowest_unit);
+                TheoryCraftCast("Flash Heal")
+            end
+        end
+    end
+end
+
+function RenewOrSWP()
+    if (not UnitExists("target")) then
+        TargetUnit('player')
+    end
+    if UnitIsFriend("player", "target") then
+        --CastSpellByName("Renew")
+        local Sp = { 1, 10, 15, 20, 25, 30, 35, 40, 45, 50 }
+        if UnitLevel("target") ~= nil then
+            for i = 10, 1, -1 do
+                if (UnitLevel("target") >= Sp[i]) then
+                    CastSpellByName("Renew(Rank " .. i .. ")")
+                    return
+                end
+            end
+        end
+    else
+
+        local baseStack = 0
+
+        for i = 1, 40 do
+            if (string.find(tostring(UnitDebuff("target", i)), "Spell_Shadow_BlackPlague")) then
+                local _, stack = UnitDebuff("target", i)
+                baseStack = stack
+            end
+        end
+
+        for i = 1, 40 do
+            if (string.find(tostring(UnitDebuff("target", i)), "Spell_Shadow_ShadowWordPain")) then
+                if baseStack < 4 then
+                    CastSpellByName("Shadow Word: Pain(Rank 1)")
+                    return true
+                end
+            end
+        end
+        CastSpellByName("Shadow Word: Pain")
+
+    end
+end
+
 function ssRes(arg1, arg2)
     if arg1 == "sstime" then
         SendChatMessage("--- Soulstone time left " .. ssResponder() .. " --- ", "WHISPER", "Common", arg2);
+    end
+end
+
+function IWin()
+    local start, duration, enabled = GetSpellCooldown(R_FindSpell("Whirlwind"), BOOKTYPE_SPELL);
+    if duration > 0 then
+        if UnitMana('player') >= 20 then
+            CastSpellByName("Cleave")
+        else
+            return false
+        end
+    else
+        if UnitMana('player') >= 25 then
+            CastSpellByName("Whirlwind")
+        else
+            return false
+        end
+        return true
+    end
+end
+
+function SmartRenew()
+    local BRenew = 'Interface\\Icons\\Spell_Holy_Renew'
+    local hasRenew = false
+    for i = 1, GetNumRaidMembers() do
+        hasRenew = false
+        if not UnitIsDead("raid" .. i) and UnitIsConnected("raid" .. i) and
+                UnitIsVisible("raid" .. i) and CheckInteractDistance("raid" .. i, 4) and
+                UnitLevel("raid" .. i) >= 55 and UnitExists("raid" .. i) then
+            for j = 1, 40 do
+                local B = UnitBuff("raid" .. i, j);
+                if B then
+                    if B == BRenew then
+                        hasRenew = true
+                        break
+                    end
+                end
+            end
+
+            if not hasRenew and UnitHealthMax("raid" .. i) - UnitHealth("raid" .. i) > 0 then
+                TargetUnit("raid" .. i)
+                CastSpellByName('Renew')
+                break
+            end
+        end
     end
 end
 
@@ -110,16 +371,20 @@ end
 
 function CastFW()
 
-    local start, duration, enabled = GetSpellCooldown(R_FindSpell("Fear Ward"), BOOKTYPE_SPELL);
-    local FearWard = "Interface\\Icons\\Spell_Holy_Excorcism";
+    if not UnitIsFriend("player", "target") then
+        return false
+    end
+
+    local start, duration, enabled = GetSpellCooldown(R_FindSpell("Fear Ward"), BOOKTYPE_SPELL)
+    local FearWard = "Interface\\Icons\\Spell_Holy_Excorcism"
     local hasFearWard = false
 
     if not UnitExists("target") then
-        TargetUnit("player");
-    end ;
+        TargetUnit("player")
+    end
 
     for j = 1, 40 do
-        local B = UnitBuff("target", j);
+        local B = UnitBuff("target", j)
         if B then
             if B == FearWard then
                 hasFearWard = true
@@ -127,21 +392,36 @@ function CastFW()
         end
     end
 
-    if (duration > 0) then
+    if duration > 0 then
 
-        if (hasFearWard) then
-            SendChatMessage("--- You have Fear Ward --- ", "WHISPER", "Common", GetUnitName("target"));
+        if hasFearWard then
+            if UnitName('target') == UnitName('player') then
+                rprint('--- You have Fear Ward ---')
+            else
+                SendChatMessage("--- You have Fear Ward --- ", "WHISPER", "Common", GetUnitName("target"));
+            end
         else
-            SendChatMessage("--- Fear Ward is on Cooldown " .. math.floor(start + duration - GetTime()) .. "s --- ", "WHISPER", "Common", GetUnitName("target"));
+            if UnitName('target') == UnitName('player') then
+                rprint("--- Fear Ward is on Cooldown " .. math.floor(start + duration - GetTime()) .. "s --- ")
+            else
+                SendChatMessage("--- Fear Ward is on Cooldown " .. math.floor(start + duration - GetTime()) .. "s --- ", "WHISPER", "Common", GetUnitName("target"));
+            end
         end
-
     else
-
-        if (hasFearWard) then
-            SendChatMessage("--- You have Fear Ward --- ", "WHISPER", "Common", GetUnitName("target"));
+        if hasFearWard then
+            if UnitName('target') == UnitName('player') then
+                rprint('--- You have Fear Ward ---')
+            else
+                SendChatMessage("--- You have Fear Ward --- ", "WHISPER", "Common", GetUnitName("target"));
+            end
         else
             CastSpellByName("Fear Ward");
-            SendChatMessage("--- Fresh Fear Ward cast on you ! --- ", "WHISPER", "Common", GetUnitName("target"));
+
+            if UnitName('target') == UnitName('player') then
+                rprint("--- Fresh Fear Ward cast on you ! --- ")
+            else
+                SendChatMessage("--- Fresh Fear Ward cast on you ! --- ", "WHISPER", "Common", GetUnitName("target"));
+            end
         end
     end
 end

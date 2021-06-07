@@ -3,4 +3,5 @@
 ## Author: Rake
 ## Version: 0.1
 ## Notes: Smart Spell Ranks
+## SavedVariablesPerCharacter: RSH
 RakeSmartHeal.lua
