@@ -197,17 +197,25 @@ function RenewOrSWP()
         TargetUnit('player')
     end
     if UnitIsFriend("player", "target") then
-        --CastSpellByName("Renew")
-        local Sp = { 1, 10, 15, 20, 25, 30, 35, 40, 45, 50 }
-        if UnitLevel("target") ~= nil then
-            for i = 10, 1, -1 do
-                if (UnitLevel("target") >= Sp[i]) then
-                    CastSpellByName("Renew(Rank " .. i .. ")")
-                    return
-                end
-            end
-        end
+        CastSpellByName("Renew")
+        --local Sp = { 1, 10, 15, 20, 25, 30, 35, 40, 45, 50 }
+        --if UnitLevel("target") ~= nil then
+        --    for i = 10, 1, -1 do
+        --        if (UnitLevel("target") >= Sp[i]) then
+        --            CastSpellByName("Renew(Rank " .. i .. ")")
+        --            return
+        --        end
+        --    end
+        --end
     else
+
+        if string.find(string.lower(UnitName('target')), "totem", 1 ,true) then
+            DEFAULT_CHAT_FRAME:AddMessage("Totem")
+            return false
+        end
+
+
+
 
         local baseStack = 0
 
@@ -218,7 +226,17 @@ function RenewOrSWP()
             end
         end
 
-        for i = 1, 40 do
+        local _, class = UnitClass('target')
+
+        if class then
+            class = string.lower(class)
+            if class == 'priest' and baseStack < 4 then
+                CastSpellByName("Shadow Word: Pain(Rank 1)")
+                return true
+            end
+        end
+
+        for i = 1, 24 do
             if (string.find(tostring(UnitDebuff("target", i)), "Spell_Shadow_ShadowWordPain")) then
                 if baseStack < 4 then
                     CastSpellByName("Shadow Word: Pain(Rank 1)")
@@ -288,15 +306,18 @@ function SmartFort()
         TargetUnit("player")
     end
 
-    local Sp = { 1, 2, 14, 26, 38, 50 }
-    if (UnitLevel("target") ~= nil and UnitIsFriend("player", "target")) then
-        for i = 6, 1, -1 do
-            if (UnitLevel("target") >= Sp[i]) then
-                CastSpellByName("Power Word: Fortitude(Rank " .. i .. ")")
-                return
-            end
-        end
-    end
+    CastSpellByName("Power Word: Fortitude")
+
+    -- not needed, handled server side
+    --local Sp = { 1, 2, 14, 26, 38, 50 }
+    --if (UnitLevel("target") ~= nil and UnitIsFriend("player", "target")) then
+    --    for i = 6, 1, -1 do
+    --        if (UnitLevel("target") >= Sp[i]) then
+    --            CastSpellByName("Power Word: Fortitude(Rank " .. i .. ")")
+    --            return
+    --        end
+    --    end
+    --end
 end
 
 function SmartSpirit()
@@ -305,16 +326,18 @@ function SmartSpirit()
         TargetUnit("player");
     end
 
-    local Sp = { 20, 28, 38, 48 }
+    CastSpellByName("Divine Spirit")
 
-    if (UnitLevel("target") ~= nil and UnitIsFriend("player", "target")) then
-        for i = 4, 1, -1 do
-            if (UnitLevel("target") >= Sp[i]) then
-                CastSpellByName("Divine Spirit(Rank " .. i .. ")")
-                return
-            end
-        end
-    end
+    -- not needed, handled server side
+    --local Sp = { 20, 28, 38, 48 }
+    --if (UnitLevel("target") ~= nil and UnitIsFriend("player", "target")) then
+    --    for i = 4, 1, -1 do
+    --        if (UnitLevel("target") >= Sp[i]) then
+    --            CastSpellByName("Divine Spirit(Rank " .. i .. ")")
+    --            return
+    --        end
+    --    end
+    --end
 end
 
 function R_FindSpell(spellName, caseinsensitive)
@@ -449,23 +472,27 @@ end
 
 function pws()
 
-    if (not UnitExists("target")) then
-        TargetUnit('player')
-    end
-    if UnitIsFriend("player", "target") then
-        --CastSpellByName("Renew")
-        local Sp = { 1, 10, 15, 20, 25, 30, 35, 40, 45, 50 }
-        if UnitLevel("target") ~= nil then
-            for i = 10, 1, -1 do
-                if (UnitLevel("target") >= Sp[i]) then
-                    CastSpellByName("Power Word: Shield(Rank " .. i .. ")")
-                    return
-                end
-            end
-        end
-    else
-        CastSpellByName("Power Word: Shield")
-    end
+    CastSpellByName("Power Word: Shield")
+
+    -- not needed, handled server side
+
+    --if (not UnitExists("target")) then
+    --    TargetUnit('player')
+    --end
+    --if UnitIsFriend("player", "target") then
+    --    --CastSpellByName("Renew")
+    --    local Sp = { 1, 10, 15, 20, 25, 30, 35, 40, 45, 50 }
+    --    if UnitLevel("target") ~= nil then
+    --        for i = 10, 1, -1 do
+    --            if (UnitLevel("target") >= Sp[i]) then
+    --                CastSpellByName("Power Word: Shield(Rank " .. i .. ")")
+    --                return
+    --            end
+    --        end
+    --    end
+    --else
+    --    CastSpellByName("Power Word: Shield")
+    --end
 
 end
 
@@ -474,7 +501,8 @@ function RaidBuff(p1, p2, p3, p4, p5, p6, p7, p8)
     local g = { false, false, false, false, false, false, false, false }
 
     local withShadow = false
-    local withSpirit = true
+
+    local withSpirit = R_FindSpell("Divine Spirit") ~= 501
 
     local groupsString = ''
 
